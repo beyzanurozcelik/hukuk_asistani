@@ -70,20 +70,16 @@ graph TD
     
     %% Karar 1: Özet mi Analiz mi?
     Supervisor -->|Q3: Genel Özet| Ozet[📄 Genel Özet Aracı]
-    Supervisor -->|Doküman Analizi| Analyzer[🧐 Analyzer Agent]
+    Supervisor -->|Doküman Analizi| Analyzer[🧐 RAG Agent]
     
     %% Karar 2: Hangi Tool?
     Analyzer --> SoruTipi{❓ Soru Tipi}
     SoruTipi -->|Q1: X Nedir?| Tool1[🎯 Nokta Atışı Aracı]
-    SoruTipi -->|Q2: Sentez| Tool2[🌐 Geniş Arama Aracı]
+    SoruTipi -->|Q2: Birden fazla döküman| Tool2[🌐 Geniş Arama Aracı]
     
     %% Merge
     Tool1 --> Grader{⚖️ Kalite Kontrol}
     Tool2 --> Grader
-    
-    %% Self-Correction Loop
-    Grader -->|❌ Yetersiz Bilgi| Analyzer
-    Grader -->|✅ Onaylandı| Generator[✍️ Cevap Üretimi]
     
     %% Çıkış
     Ozet --> End([🚀 Nihai Cevap])

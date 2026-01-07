@@ -95,7 +95,6 @@ graph TD
     PointSearch --> Control
     BroadSearch --> Control
 
-    Control -- Yetersiz --> AnalystNode
     Control -- Tamam --> FinalWrite
 
     SummaryTool --> End

@@ -87,4 +87,3 @@ graph TD
     style Supervisor fill:#FF9F43,stroke:#333,color:white
     style Grader fill:#FF9F43,stroke:#333,color:white
     style Analyzer fill:#54a0ff,stroke:#333,color:white
-    style Generator fill:#1dd1a1,stroke:#333,color:white

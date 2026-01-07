@@ -83,7 +83,6 @@ graph TD
     
     %% Çıkış
     Ozet --> End([🚀 Nihai Cevap])
-    Generator --> End
     
     style Supervisor fill:#FF9F43,stroke:#333,color:white
     style Grader fill:#FF9F43,stroke:#333,color:white

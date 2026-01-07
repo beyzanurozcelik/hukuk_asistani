@@ -66,24 +66,53 @@ Aşağıdaki diyagram, sistemin karar ağaçlarını, ajanlar arası geçişleri
 
 ```mermaid
 graph TD
-    Start((👤 Kullanıcı Sorusu)) --> Supervisor{🚦 Supervisor}
-    
-    %% Karar 1: Özet mi Analiz mi?
-    Supervisor -->|Q3: Genel Özet| Ozet[📄 Genel Özet Aracı]
-    Supervisor -->|Doküman Analizi| Analyzer[🧐 RAG Agent]
-    
-    %% Karar 2: Hangi Tool?
-    Analyzer --> SoruTipi{❓ Soru Tipi}
-    SoruTipi -->|Q1: X Nedir?| Tool1[🎯 Nokta Atışı Aracı]
-    SoruTipi -->|Q2: Birden fazla döküman| Tool2[🌐 Geniş Arama Aracı]
-    
-    %% Merge
-    Tool1 --> Grader{⚖️ Kalite Kontrol}
-    Tool2 --> Grader
-    
-    %% Çıkış
-    Ozet --> End([🚀 Nihai Cevap])
-    
-    style Supervisor fill:#FF9F43,stroke:#333,color:white
-    style Grader fill:#FF9F43,stroke:#333,color:white
-    style Analyzer fill:#54a0ff,stroke:#333,color:white
+    %% --- Node Tanımları ---
+    User(["👤 Kullanıcı Sorusu"])
+    Supervisor{"🚦 Supervisor Agent"}
+    SummaryTool["📝 Genel Özet Aracı"]
+    End(["🚀 Nihai Cevap"])
+
+    %% --- RAG Agent Grubu ---
+    subgraph AE ["🚀 Rag Agent: RAG VE CEVAP ÜRETİMİ"]
+        direction TB
+        AnalystNode("🤖 Analizer")
+        SearchRouter{"❓ Soru Tipi?"}
+        PointSearch["🎯 Nokta Atışı Aracı"]
+        BroadSearch["🌐 Geniş Arama Aracı"]
+        Control{"🧐 Kalite Kontrol"}
+        FinalWrite["✍️ Cevap Üretimi"]
+    end
+
+    %% --- Bağlantılar ---
+    User --> Supervisor
+    Supervisor -- Doküman Analizi --> AnalystNode
+    Supervisor -- Özet Gerekli (Q3) --> SummaryTool
+
+    AnalystNode --> SearchRouter
+    SearchRouter -- Tekil Bilgi (Q1) --> PointSearch
+    SearchRouter -- Çoklu Doküman (Q2) --> BroadSearch
+
+    PointSearch --> Control
+    BroadSearch --> Control
+
+    Control -- Yetersiz --> AnalystNode
+    Control -- Tamam --> FinalWrite
+
+    SummaryTool --> End
+    FinalWrite --> End
+
+    %% --- Stil Tanımları (GitHub Standartlarına Uygun) ---
+    classDef startStop fill:#2d3436,stroke:#000,stroke-width:2px,color:#fff
+    classDef supervisor fill:#ff9f43,stroke:#e67e22,stroke-width:3px,color:#000
+    classDef analyst fill:#0984e3,stroke:#074e83,stroke-width:2px,color:#fff
+    classDef tool fill:#f5f6fa,stroke:#7f8c8d,stroke-width:2px,stroke-dasharray: 5 5,color:#000
+    classDef decision fill:#fdcb6e,stroke:#f39c12,stroke-width:2px,color:#000
+    classDef container fill:#E3F2FD,stroke:#2980b9,stroke-width:2px,color:#000
+
+    %% --- Stilleri Uygula ---
+    class User,End startStop
+    class Supervisor supervisor
+    class AnalystNode analyst
+    class SearchRouter,Control decision
+    class PointSearch,BroadSearch,SummaryTool tool
+    class AE container

@@ -1,0 +1,31 @@
+# Dosya adı: docker-compose.yml
+version: '3.8'
+
+services:
+  # --- BACKEND (FastAPI) ---
+  backend:
+    build: .
+    container_name: hukuk_backend
+    command: uvicorn main_api:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./chroma_db:/app/chroma_db # Vektör verilerin kaybolmasın diye (varsa)
+
+  # --- FRONTEND (Streamlit) ---
+  frontend:
+    build: .
+    container_name: hukuk_frontend
+    command: streamlit run frontend.py --server.address=0.0.0.0
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    environment:
+      # DİKKAT: Docker içinde frontend backend'e "localhost" diyemez.
+      # Servis ismini (backend) kullanmalı.
+      - API_URL=http://backend:8000/chat 
+    depends_on:
+      - backend

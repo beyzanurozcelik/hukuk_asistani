@@ -87,8 +87,6 @@ Projeyi kendi bilgisayarınızda (lokal ortamda) çalıştırmak için aşağıd
 
 ### 1. Repoyu Klonlayın
 Projeyi bilgisayarınıza indirin ve proje dizinine girin:
-
-```bash
 git clone [https://github.com/beyzanurozcelik/hukuk_asistani.git]
 cd hukuk_asistani
 

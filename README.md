@@ -77,6 +77,38 @@ Yazılmış sistemin çalışan halinin videosu bu drive linkindedir: https://dr
 Kodu kuramamanız halinde sistemin nasıl çalıştığına göz atabilmeniz için eklenmiştir.
 
 ---
+## 🚀 Kurulum ve Çalıştırma
+
+Projeyi kendi bilgisayarınızda (lokal ortamda) çalıştırmak için aşağıdaki adımları sırasıyla izleyin.
+
+### Ön Hazırlık
+* Bilgisayarınızda **Python 3.13** veya üzeri yüklü olmalıdır.
+* Google AI Studio üzerinden alınmış bir **Gemini API Key** gereklidir.
+
+### 1. Repoyu Klonlayın
+Projeyi bilgisayarınıza indirin ve proje dizinine girin:
+
+```bash
+git clone [https://github.com/beyzanurozcelik/hukuk_asistani.git]
+cd hukuk_asistani
+
+### 2. Sanal Ortam Oluşturun
+python -m venv venv
+.\venv\Scripts\activate
+
+### 3. Kütüphaneleri Yükleyin
+pip install -r requirements.txt
+
+### 4. .env dosyası oluşturun
+GOOGLE_API_KEY ve GEMINI_MODEL_NAME içermeli.
+
+### 5. FastAPI appini çalıştırmak için
+Komutu çalıştırın: uvicorn main:app --reload
+
+### 6. Streamlit Arayüzünü Çalıştırmak için
+Komutu çalıştırın: streamlit run frontend.py
+
+---
 
 ## İnteraktif Akış Şeması (Mermaid)
 
@@ -133,35 +165,3 @@ graph TD
     class SearchRouter,Control decision
     class PointSearch,BroadSearch,SummaryTool tool
     class AE container
-
-## 🚀 Kurulum ve Çalıştırma
-
-Projeyi kendi bilgisayarınızda (lokal ortamda) çalıştırmak için aşağıdaki adımları sırasıyla izleyin.
-
-### Ön Hazırlık
-* Bilgisayarınızda **Python 3.13** veya üzeri yüklü olmalıdır.
-* Google AI Studio üzerinden alınmış bir **Gemini API Key** gereklidir.
-
-### 1. Repoyu Klonlayın
-Projeyi bilgisayarınıza indirin ve proje dizinine girin:
-
-```bash
-git clone [https://github.com/beyzanurozcelik/hukuk_asistani.git]
-cd hukuk_asistani
-
-### 2. Sanal Ortam Oluşturun
-python -m venv venv
-.\venv\Scripts\activate
-
-### 3. Kütüphaneleri Yükleyin
-pip install -r requirements.txt
-
-### 4. .env dosyası oluşturun
-GOOGLE_API_KEY ve GEMINI_MODEL_NAME içermeli.
-
-### 5. FastAPI appini çalıştırmak için
-Komutu çalıştırın: uvicorn main:app --reload
-
-### 6. Streamlit Arayüzünü Çalıştırmak için
-Komutu çalıştırın: streamlit run frontend.py
-

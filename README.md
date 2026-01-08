@@ -27,13 +27,29 @@ Sistem, aşağıdaki üç temel senaryoyu birbirinden ayırır ve her biri için
 * **Örnek:** *"Bu konuda İş Kanunu ve Borçlar Kanunu arasındaki farklar nelerdir?"* veya *"Elimizdeki tüm sözleşmelerde 'Mücbir Sebep' maddesi ne şekilde tanımlanmıştır?"*
 * **Strateji:** Sistem "Geniş Arama" moduna geçer. Daha fazla doküman parçası (chunk) getirilir, gerekirse dokümanlar arası bağlam korunarak bir sentez (synthesis) yanıtı oluşturulur.
 
-### 3. Genel Sohbet ve Özetleme (Q3 - Efficiency Focus)
-* **Senaryo:** Kullanıcı dokümanlardan bağımsız bir soru sorabilir, selamlaşabilir veya mevcut doküman setinin genel bir özetini isteyebilir.
-* **Örnek:** *"Merhaba, nasılsın?"* veya *"Yüklenen dokümanların genel konusu nedir?"*
+### 3. Özetleme (Q3 - Efficiency Focus)
+* **Senaryo:** Kullanıcı mevcut doküman setinin genel bir özetini isteyebilir.
+* **Örnek:** *"Yüklenen dokümanların genel konusu nedir?"*
 * **Strateji:** Vektör veritabanında maliyetli ve gereksiz bir arama yapılmaz. Sistem doğrudan LLM'in kendi bilgi birikimini veya dokümanların önceden hazırlanmış meta-özetlerini kullanır.
 
 ---
 
+## 📂 Veri Seti ve Vektörleştirme Stratejisi
+
+Projenin bilgi tabanı, **[mevzuat.gov.tr](https://www.mevzuat.gov.tr/)** üzerinden alınan resmi ve güncel hukuki metinlere dayanmaktadır. Sistem şu an için aşağıdaki 3 temel yasal düzenlemeyi kapsamaktadır:
+
+1.  **6698 Sayılı Kişisel Verilerin Korunması Kanunu (KVKK)**
+2.  **Kişisel Verilerin Silinmesi, Yok Edilmesi veya Anonim Hale Getirilmesi Hakkında Yönetmelik**
+3.  **Kişisel Verilerin Yurt Dışına Aktarılmasına İlişkin Usul ve Esaslar Hakkında Yönetmelik**
+
+### 🧩 Veri İşleme (Chunking) Yöntemi
+Hukuki metinlerin hiyerarşik yapısı göz önünde bulundurularak, standart karakter bölme (fixed-size chunking) yerine **"Madde Bazlı Parçalama" (Clause-based Chunking)** stratejisi izlenmiştir. Her bir kanun maddesi, kendi bağlamını koruyacak şekilde ayrı bir vektör parçası olarak işlenmiştir.
+
+### 🧠 Embedding ve Veritabanı
+* **Model:** Türkçe anlamsal benzerlik başarısı ve hız/performans dengesi nedeniyle Hugging Face üzerinden **`sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`** modeli tercih edilmiştir.
+* **Veritabanı:** Veri setinin ölçeği (Small/Medium scale) ve yerel kurulum kolaylığı nedeniyle **ChromaDB** kullanılarak, veriler vektörel uzayda saklanmıştır.
+
+---
 ## Mimari Detayları ve Ajan Yapısı
 
 Proje, **LangGraph** kütüphanesi kullanılarak bir **"State Machine" (Durum Makinesi)** olarak kurgulanmıştır. Bu yapı, ajanların birbirine iş devretmesine, durum (state) paylaşmasına ve döngüsel (cyclic) işlemler yapmasına olanak tanır.
@@ -42,21 +58,23 @@ Mimarideki temel bileşenler şunlardır:
 
 ### 1. Supervisor Agent (Yönetici & Router)
 Sistemin giriş kapısıdır. Gelen soruyu semantik olarak analiz eder ve bir sınıflandırma (classification) yapar. Bu ajan bir cevap üretmez, sadece trafiği yönlendirir.
-* **Görevi:** Sorunun Q1, Q2 veya Q3 kategorisine girdiğini belirlemek.
+* **Görevi:** Sorunun [Q1, Q2] veya Q3 kategorisine girdiğini belirlemek.
 * **Karar Mekanizması:** LLM'e sunulan özel bir prompt ile sorunun niyetini (Intent Detection) tespit eder.
 
 ### 2. Analyzer Agent (Analist & Stratejist)
 Doküman analizi gerektiğinde devreye girer. Sadece arama yapmaz, "nasıl arama yapılacağını" planlar.
-* **Query Expansion (Sorgu Genişletme):** Kullanıcının sorusunu, veritabanında daha iyi sonuç verecek hukuki terimlerle yeniden yazar veya alternatif sorgular üretir.
 * **Tool Seçimi:** Sorunun derinliğine göre aşağıdaki araçlardan hangisinin kullanılacağına karar verir:
     * **🎯 Nokta Atışı Aracı (Point Search Tool):** `top_k=3` gibi dar bir pencerede yüksek kesinlikli arama yapar.
     * **🌐 Geniş Arama Aracı (Broad Search Tool):** `top_k=10` veya üzeri geniş bir pencerede arama yapar ve gerekirse MMR (Maximal Marginal Relevance) algoritması ile çeşitliliği artırır.
+      
+### 3. General Summary Node (Genel Özetleyici)
+Supervisor tarafından **Q3** kategorisine (Genel Özet) yönlendirilen istekleri karşılar.
+* **Görevi:** Kullanıcı spesifik bir detay yerine, doküman setinin tamamına dair genel bir bilgi istediğinde (Örn: *"Bu dava dosyalarının genel konusu nedir?"*) devreye girer.
+* **Çalışma Prensibi:** Parçalı (chunk-based) vektör araması yapmak yerine, dokümanların global bağlamını veya sistemde halihazırda özeti çıkarılıp kaydedilmiş özetlerini kullanarak, arama maliyeti oluşturmadan hızlı ve bütüncül bir yanıt üretir.
 
-### 3. Kalite Kontrol (Grader & Self-Correction Loop)
-Sistemin "Zekası" buradadır. Standart RAG sistemlerinde olmayan "Oto-Kontrol" mekanizmasını işletir.
-* **Relevance Check (Alaka Kontrolü):** Araçlardan dönen doküman parçalarının, kullanıcının sorusuyla gerçekten alakalı olup olmadığını puanlar.
-* **Hallucination Check (Halüsinasyon Kontrolü):** Üretilen cevabın, sadece ve sadece bulunan dokümanlara dayanıp dayanmadığını kontrol eder.
-* **Döngü (Loop) Mekanizması:** Eğer Grader, bulunan dokümanları yetersiz bulursa veya cevabın uydurma olduğunu tespit ederse akışı sonlandırmaz. **Analyzer Agent**'a geri bildirim (feedback) göndererek: *"Bulduğun dokümanlar soruyla alakasız, lütfen sorguyu değiştir ve tekrar ara"* komutunu verir. Bu döngü, doğru bilgi bulunana veya deneme hakkı bitene kadar devam eder.
+### Sistemin Çalışma Videosu
+Yazılmış sistemin çalışan halinin videosu bu drive linkindedir: https://drive.google.com/file/d/1QJbSPw8U4IjNK_HYgoVzNh1uTmdT43IW/view?usp=sharing
+Kodu kuramamanız halinde sistemin nasıl çalıştığına göz atabilmeniz için eklenmiştir.
 
 ---
 

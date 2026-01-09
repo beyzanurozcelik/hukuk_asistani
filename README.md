@@ -61,7 +61,7 @@ Sistemin giriş kapısıdır. Gelen soruyu semantik olarak analiz eder ve bir s�
 * **Görevi:** Sorunun [Q1, Q2] veya Q3 kategorisine girdiğini belirlemek.
 * **Karar Mekanizması:** LLM'e sunulan özel bir prompt ile sorunun niyetini (Intent Detection) tespit eder.
 
-### 2. Analyzer Agent (Analist & Stratejist)
+### 2. RAG Agent (Analist & Stratejist)
 Doküman analizi gerektiğinde devreye girer. Sadece arama yapmaz, "nasıl arama yapılacağını" planlar.
 * **Tool Seçimi:** Sorunun derinliğine göre aşağıdaki araçlardan hangisinin kullanılacağına karar verir:
     * **🎯 Nokta Atışı Aracı (Point Search Tool):** `top_k=3` gibi dar bir pencerede yüksek kesinlikli arama yapar.
